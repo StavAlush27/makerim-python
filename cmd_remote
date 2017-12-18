@@ -1,0 +1,58 @@
+import socket                                         
+import subprocess
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+def server():
+	# server.py 
+	# create a socket object 
+	# get local machine name
+	host = socket.gethostname()                           
+	port = 9998                                           
+	# bind to the port
+	s.bind((host, port))                                  
+	# queue up to 5 requests
+	s.listen(5)                                           
+	while True:
+		# establish a connection
+		clientsocket,addr = s.accept()
+		while True:
+			command=clientsocket.recv(1024)
+			output = subprocess.check_output(command)
+			clientsocket.send(output)
+def client():
+	# client.py  
+	# create a socket object
+	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+	# get local machine name
+	host = socket.gethostname()                           
+	port = 9998
+	# connection to hostname on the port.
+	s.connect((host, port))                               
+	# Receive no more than 1024 bytes
+	while True:
+		command=raw_input("Enter your command ")
+		s.send(command)                                     
+		output=s.recv(1024)
+		print output
+	s.close()
+def my_input(message,type_func=str):
+    ok = 0
+    while not ok:
+        try:
+            x = raw_input(message)
+            y = type_func(x)
+            ok = 1
+        except ValueError,e:
+            print "Bad value given: ",e," Try again."
+    return y
+def is_server_client(string):
+    if not string.lower() in ["s","c"]:
+        raise ValueError, "not 's' or 'c'."
+    return string.lower()
+try:
+    s_c = my_input("Press S to run a server, C to run a client(server needs to run before client run): ", is_server_client)
+    if s_c == "s":
+        server()
+    else:
+        client()
+except KeyboardInterrupt:
+    print "\n\nProgram stopped.\nGoodBye."
